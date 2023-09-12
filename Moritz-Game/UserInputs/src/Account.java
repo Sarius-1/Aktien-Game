@@ -1,11 +1,12 @@
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
-import java.sql.SQLOutput;
-import java.util.Scanner;
+import java.util.Objects;
+import java.util.sql.SQLOutput;
 import java.util.Random;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Account {
+
 
     public static final String ANSI_RESET = "\u001B[0m";
     //public static final String ANSI_BLACK = "\u001B[30m";
@@ -422,7 +423,7 @@ public class Account {
         System.out.println("Zurück zum Hauptmenü: menu");
         belegen();
         if(input.equals("change")){
-            firmenkosten -= (gehalt*mitarbeiter);
+                    firmenkosten -= (gehalt*mitarbeiter);
             System.out.println("Mit deiner aktuellen Bürofläche kannst du bis zu 3 Mitarbeiter anstellen");
             System.out.println("Wie viele Mitarbeiter möchtest du beschäftigen?");
             belegen();
@@ -456,10 +457,7 @@ public class Account {
         } else if(input.equals("return")){
             firmaVerwaltung();
         } else if(input.equals("menu")){
-            logged();
-        } else {
-            System.out.println("Eingabefehler!");
-            mitarbeiter();
+	@@ -463,31 +442,6 @@ static void mitarbeiter(){
         }
     }
 
@@ -482,7 +480,7 @@ public class Account {
                     mitarbeiterzuf = 0; //Fehlerindikator
                 }
             } else if (veränderung == 0) {
-                
+
 
             }
         }
@@ -508,7 +506,7 @@ public class Account {
         wait(500);
         belegen();
 
-        if(input.equals("send")){
+        if(input.equals("send")) {
             System.out.println("An welchen Nutzer soll Geld überwiesen werden?");
             System.out.println("Bitte gib hierzu die Nummer des jeweiligen Benutzers an!");
             System.out.println();
@@ -517,20 +515,26 @@ public class Account {
             wait(500);
             belegen();
             merker2 = Integer.parseInt(input);
-            if(benutzername[merker2]==null){
+            try{
+            if (benutzername[merker2] == null) {
                 System.out.println("Der Nutzer zu dieser Nummer existiert nicht!");
                 System.out.println();
             } else {
-                System.out.println("Wie viel Geld möchtest du "+ benutzername[merker2] + " senden?");
+                System.out.println("Wie viel Geld möchtest du " + benutzername[merker2] + " senden?");
                 wait(500);
                 belegen();
-                if(saldo[merker]>=Float.parseFloat(input)){
+                if (saldo[merker] >= Float.parseFloat(input)) {
                     saldo[merker] -= Float.parseFloat(input);
                     saldo[merker2] += Float.parseFloat(input);
                 } else {
                     System.out.println("Dein Saldo ist zu gering für diese Transaktion!");
                     geld();
                 }
+            }
+        }
+            catch (Exception e){
+                System.out.println("Ihre Eingabe ist ungültig");
+                geld();
             }
         } else if(input.equals("menu")){
             logged();
@@ -970,6 +974,11 @@ public class Account {
         else if (input.equals("menu")){
             logged();
         }
+        else{
+            System.out.println("");
+            System.out.println("Ihre Eingabe ist ungültig.");
+            post();
+        }
     }
 
     static void schreibePostfach(int benutzer, String nachricht){
@@ -1020,35 +1029,80 @@ public class Account {
     }
 
     static void calculator(){
+        boolean richtigeEingabe = false;
         System.out.println("Rechenoperationen mit bis zu 3 Zahlen möglich!");
+
+        while(richtigeEingabe == false) {
         System.out.print("Erste Zahl:");
         System.out.println();
         wait(500);
         belegen();
-        a = umrechnen(input);
-        System.out.print("Operator:");
-        System.out.println();
+            try {
+                a = umrechnen(input);
+                richtigeEingabe = true;
+            } catch (Exception ex) {
+                System.out.println("Bitte nur Zahlen eingeben");
+            }
+        }
+        richtigeEingabe = false;
         wait(500);
-        belegen();
-        b = input;
-        System.out.print("Zweite Zahl:");
-        System.out.println();
-        wait(500);
-        belegen();
-        c = umrechnen(input);
+        while (richtigeEingabe == false) {
+            System.out.print("Operator:");
+            System.out.println();
+            belegen();
+            if (Objects.equals(input, "+") || Objects.equals(input, "*") || Objects.equals(input, "-") || Objects.equals(input, "/")){
+                b = input;
+                richtigeEingabe = true;
+            } else{
+                System.out.println("Bitte nur einen der folgenden Operatoren nutzen: + - * /");
+            }
+
+        }
+        richtigeEingabe = false;
+        while(richtigeEingabe == false) {
+            System.out.print("Zweite Zahl:");
+            System.out.println();
+            wait(500);
+            belegen();
+            try {
+                c = umrechnen(input);
+                richtigeEingabe = true;
+            } catch (Exception ex) {
+                System.out.println("Bitte nur Zahlen eingeben");
+            }
+        }
+        richtigeEingabe = false;
         System.out.println("Operator oder '=':");
-        wait(500);
-        belegen();
-        d = input;
+        while (richtigeEingabe == false) {
+            System.out.print("Operator:");
+            System.out.println();
+            belegen();
+            if (Objects.equals(input, "+") || Objects.equals(input, "*") || Objects.equals(input, "-") || Objects.equals(input, "/")|| Objects.equals(input, "=")){
+                d = input;
+                richtigeEingabe = true;
+            } else{
+                System.out.println("Bitte nur einen der folgenden Operatoren nutzen: + - * / =");
+            }
+
+        }
+        richtigeEingabe = false;
         if(input.equals("=")) {
             System.out.println();
             System.out.println("Ergebnis: " +Math.round(berechnen()*1000)/1000.0);
             System.out.println();
         } else {
-            System.out.println("Dritte Zahl:");
+            while(richtigeEingabe == false) {
+            System.out.print("Dritte Zahl:");
+            System.out.println();
             wait(500);
             belegen();
-            e = umrechnen(input);
+            try {
+                e = umrechnen(input);
+                richtigeEingabe = true;
+            } catch (Exception ex) {
+                System.out.println("Bitte nur Zahlen eingeben");
+            }
+        }
             System.out.println();
             System.out.println("Ergebnis: " +Math.round(berechnen()*1000)/1000.0);
             System.out.println();
@@ -1144,14 +1198,15 @@ public class Account {
     }
 
     static float umrechnen(String zahl){
-        if(zahl.contains(",")){
-            StringBuilder str = new StringBuilder(zahl);
-            str.setCharAt(1, '.');
-            zahl = str.toString();
+            if (zahl.contains(",")) {
+                StringBuilder str = new StringBuilder(zahl);
+                str.setCharAt(1, '.');
+                zahl = str.toString();
+                return Float.parseFloat(zahl);
+           }
             return Float.parseFloat(zahl);
         }
-        return Float.parseFloat(zahl);
-    }
+
 
     static void change(){
         if(loggedBen.equals("Admin")) {
