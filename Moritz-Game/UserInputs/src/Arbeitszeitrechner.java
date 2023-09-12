@@ -15,32 +15,19 @@ public class Arbeitszeitrechner {
         System.out.println("Wann hast du heute eingestempelt?");
         acc.belegen();
         ankunft = Account.input;
-        try {
-            System.out.println("Ankunft: " + ankunft + " Uhr");
-
-            if (ankunft.length() == 4) {
-                hh = Integer.parseInt(ankunft.substring(0, 1));
-                mm = Integer.parseInt(ankunft.substring(2, 4));
-            } else {
-                hh = Integer.parseInt(ankunft.substring(0, 2));
-                mm = Integer.parseInt(ankunft.substring(3, 5));
-            }
-
-            mm += 15;
-            if (mm > 59) {
-                hh++;
-                mm -= 60;
-            }
-            hh += 8;
-            if (mm < 10) {
-                System.out.println("Ohne minus zu machen dürftest du ab " + hh + ":0" + mm + " Uhr gehen");
-            } else {
-                System.out.println("Ohne minus zu machen dürftest du ab " + hh + ":" + mm + " Uhr gehen");
-            }
+        System.out.println("Ankunft: "+ ankunft+ " Uhr");
+        hh = Integer.parseInt(ankunft.substring(0,2));
+        mm = Integer.parseInt(ankunft.substring(3,5));
+        mm+=15;
+        if(mm>59){
+            hh++;
+            mm -= 60;
         }
-        catch (Exception e){
-            System.out.println("Bitte tätige deine Eingabe im Format hh:mm");
-            start();
+        hh +=8;
+        if(mm<10){
+            System.out.println("Ohne minus zu machen dürftest du ab "+hh+":0"+mm+" Uhr gehen");
+        } else {
+            System.out.println("Ohne minus zu machen dürftest du ab " + hh + ":" + mm + " Uhr gehen");
         }
     }
 }
