@@ -229,7 +229,7 @@ public class Account {
             azr.start();
             logged();
         }
-        else if(input.equals("firma")&&loggedBen.equals("Admin")){
+        else if(input.equals("firma")){
             firma();
             logged();
         }
@@ -410,10 +410,16 @@ public class Account {
         System.out.println();
         System.out.println("Aktuelle Mitarbeiterzahl: "+mitarbeiter);
         if(mitarbeiter>=1){
-            System.out.println("Aktuelle Mitarbeiterzufriedenheit: "+ mitarbeiterzuf);
+            System.out.print("Aktuelle Mitarbeiterzufriedenheit: ");
+            switch (mitarbeiterzuf){
+                case 1: System.out.println("sehr unglücklich"); break;
+                case 2: System.out.println("unglücklich"); break;
+                case 3: System.out.println("zufrieden"); break;
+                case 4: System.out.println("glücklich"); break;
+                case 5: System.out.println("sehr glücklich"); break;
+            }
         } else {
             System.out.println("Aktuelle Mitarbeiterzufriedenheit: -");
-
         }
         System.out.println("Mitarbeitergehalt: "+gehalt+ " €");
         System.out.println();
@@ -432,7 +438,12 @@ public class Account {
                 firmenkosten += (gehalt*mitarbeiter);
                 mitarbeiter();
             } else {
-                mitarbeiter = Integer.parseInt(input);
+                if(mitarbeiter!=Integer.parseInt(input)){
+                    mitarbeiter = Integer.parseInt(input);
+                    mitarbeiterZufriedenheit(1);
+                } else {
+                    mitarbeiter = Integer.parseInt(input);
+                }
                 firmenkosten += (gehalt * mitarbeiter);
                 System.out.println("Du zahlst jetzt " + gehalt * mitarbeiter + " € Lohn!");
                 System.out.println();
@@ -448,11 +459,15 @@ public class Account {
                 firmenkosten += gehalt*mitarbeiter;
                 mitarbeiter();
             } else {
-                gehalt = Integer.parseInt(input);
+                if(gehalt!=Integer.parseInt(input)){
+                    gehalt = Integer.parseInt(input);
+                    mitarbeiterZufriedenheit(1);
+                } else {
+                    gehalt = Integer.parseInt(input);
+                }
                 System.out.println("Du zahlst jetzt " + gehalt * mitarbeiter + " € Lohn!");
                 System.out.println();
                 firmenkosten += gehalt * mitarbeiter;
-                mitarbeiterZufriedenheit(1);
                 mitarbeiter();
             }
         } else if(input.equals("return")){
@@ -484,9 +499,19 @@ public class Account {
                     mitarbeiterzuf = 0; //Fehlerindikator
                 }
             } else if (veränderung == 0) {
-                
-
+                zufallszahl = rnd.nextInt(10);
+                switch(zufallszahl){
+                    case 0: mitarbeiterzuf++; break;
+                    case 1: mitarbeiterzuf--; break;
+                    default: break;
+                }
             }
+        }
+        if(mitarbeiterzuf<1){
+            mitarbeiterzuf=1;
+        }
+        if(mitarbeiterzuf>5){
+            mitarbeiterzuf=5;
         }
     }
 
