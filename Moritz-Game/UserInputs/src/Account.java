@@ -1,6 +1,6 @@
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.util.Objects;
-import java.util.Scanner;
+import java.util.sql.SQLOutput;
 import java.util.Random;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,8 +45,8 @@ public class Account {
     static boolean gegründet = false;
     static float einnahmen;
     static int mitarbeiter;
-    static String mitarbeiterzuf = "zufrieden";
-    static int gehalt;
+    static int mitarbeiterzuf = 3; // 1: sehr unzufrieden, 2: unzufrieden, 3: zufrieden, 4: glücklich, 5: sehr glücklich
+    static int gehalt = 15; //standart für mitarbeitergehalt
     static boolean aktie1ins = false;
     static boolean aktie2ins = false;
     static boolean aktie3ins = false;
@@ -415,7 +415,7 @@ public class Account {
             System.out.println("Aktuelle Mitarbeiterzufriedenheit: -");
 
         }
-        System.out.println("Mitarbeitergehalt:"+gehalt);
+        System.out.println("Mitarbeitergehalt: "+gehalt+ " €");
         System.out.println();
         System.out.println("Mitarbeiterzahl ändern: change");
         System.out.println("Mitarbeitergehalt ändern: payroll");
@@ -423,22 +423,66 @@ public class Account {
         System.out.println("Zurück zum Hauptmenü: menu");
         belegen();
         if(input.equals("change")){
-            System.out.println("Mit deiner aktuellen Bürofläche kannst du bis zu 3 Mitarbeiter beschäftigen");
-            System.out.println("WIe viele Mitarbeiter möchtest du anstellen?");
+                    firmenkosten -= (gehalt*mitarbeiter);
+            System.out.println("Mit deiner aktuellen Bürofläche kannst du bis zu 3 Mitarbeiter anstellen");
+            System.out.println("Wie viele Mitarbeiter möchtest du beschäftigen?");
             belegen();
-            mitarbeiter = Integer.parseInt(input);
+            if(Integer.parseInt(input)+mitarbeiter>3){
+                System.out.println("Mit deiner aktuellen Bürofläche kannst du nur maximal 3 Mitarbeiter beschäftigen");
+                firmenkosten += (gehalt*mitarbeiter);
+                mitarbeiter();
+            } else {
+                mitarbeiter = Integer.parseInt(input);
+                firmenkosten += (gehalt * mitarbeiter);
+                System.out.println("Du zahlst jetzt " + gehalt * mitarbeiter + " € Lohn!");
+                System.out.println();
+                mitarbeiter();
+            }
         } else if(input.equals("payroll")) {
+            firmenkosten -= (gehalt*mitarbeiter);
+            System.out.println("Der Durchschnittslohn beträgt 15€ die Stunde");
             System.out.println("Auf welchen Betrag möchtest du das Mitarbeitergehalt setzen?");
             belegen();
-            gehalt = Integer.parseInt(input);
-            mitarbeiter();
+            if(Integer.parseInt(input) <= 0){
+                System.out.println("Du müsst deinen Mitarbeitern mind. 1€ Gehalt zahlen!");
+                firmenkosten += gehalt*mitarbeiter;
+                mitarbeiter();
+            } else {
+                gehalt = Integer.parseInt(input);
+                System.out.println("Du zahlst jetzt " + gehalt * mitarbeiter + " € Lohn!");
+                System.out.println();
+                firmenkosten += gehalt * mitarbeiter;
+                mitarbeiter();
+            }
         } else if(input.equals("return")){
             firmaVerwaltung();
         } else if(input.equals("menu")){
-            logged();
-        } else {
-            System.out.println("Eingabefehler!");
-            mitarbeiter();
+	@@ -463,31 +442,6 @@ static void mitarbeiter(){
+        }
+    }
+
+
+    static void mitarbeiterZufriedenheit(int veränderung){ //veränderung ist dafür nützlich, zu erfassen, ob eine gehaltsänderung durchgeführt wurde oder ob es der regelmäßige methodenaufruf aus der methode "relaunch" ist
+        //bei durchschnittslohn von 15€ automatisch zufrieden, unter 10€ unzufrieden, unter 5€ sehr unzufrieden, über 20€ glücklich, über 25€ sehr glücklich
+        if (mitarbeiter >= 1) {
+            if (veränderung == 1) {
+                if (gehalt <= 5) {
+                    mitarbeiterzuf = 1;
+                } else if (gehalt <= 10) {
+                    mitarbeiterzuf = 2;
+                } else if (gehalt <= 20) {
+                    mitarbeiterzuf = 3;
+                } else if (gehalt < 20 && gehalt <= 25) {
+                    mitarbeiterzuf = 4;
+                } else if (gehalt > 25) {
+                    mitarbeiterzuf = 5;
+                } else {
+                    mitarbeiterzuf = 0; //Fehlerindikator
+                }
+            } else if (veränderung == 0) {
+
+
+            }
         }
     }
 
@@ -704,6 +748,7 @@ public class Account {
     }
 
     static void relaunch(){
+        mitarbeiterZufriedenheit(0);
         if(uhrzeitAlt!=dtf.format(LocalDateTime.now())){
             aktienÄndern();
         }
