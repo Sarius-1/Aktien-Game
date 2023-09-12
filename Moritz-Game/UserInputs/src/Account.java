@@ -1,11 +1,12 @@
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
-import java.sql.SQLOutput;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Random;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Account {
+
 
     public static final String ANSI_RESET = "\u001B[0m";
     //public static final String ANSI_BLACK = "\u001B[30m";
@@ -44,8 +45,8 @@ public class Account {
     static boolean gegründet = false;
     static float einnahmen;
     static int mitarbeiter;
-    static int mitarbeiterzuf = 3; // 1: sehr unzufrieden, 2: unzufrieden, 3: zufrieden, 4: glücklich, 5: sehr glücklich
-    static int gehalt = 15; //standart für mitarbeitergehalt
+    static String mitarbeiterzuf = "zufrieden";
+    static int gehalt;
     static boolean aktie1ins = false;
     static boolean aktie2ins = false;
     static boolean aktie3ins = false;
@@ -414,7 +415,7 @@ public class Account {
             System.out.println("Aktuelle Mitarbeiterzufriedenheit: -");
 
         }
-        System.out.println("Mitarbeitergehalt: "+gehalt+ " €");
+        System.out.println("Mitarbeitergehalt:"+gehalt);
         System.out.println();
         System.out.println("Mitarbeiterzahl ändern: change");
         System.out.println("Mitarbeitergehalt ändern: payroll");
@@ -422,37 +423,15 @@ public class Account {
         System.out.println("Zurück zum Hauptmenü: menu");
         belegen();
         if(input.equals("change")){
-            firmenkosten -= (gehalt*mitarbeiter);
-            System.out.println("Mit deiner aktuellen Bürofläche kannst du bis zu 3 Mitarbeiter anstellen");
-            System.out.println("Wie viele Mitarbeiter möchtest du beschäftigen?");
+            System.out.println("Mit deiner aktuellen Bürofläche kannst du bis zu 3 Mitarbeiter beschäftigen");
+            System.out.println("WIe viele Mitarbeiter möchtest du anstellen?");
             belegen();
-            if(Integer.parseInt(input)+mitarbeiter>3){
-                System.out.println("Mit deiner aktuellen Bürofläche kannst du nur maximal 3 Mitarbeiter beschäftigen");
-                firmenkosten += (gehalt*mitarbeiter);
-                mitarbeiter();
-            } else {
-                mitarbeiter = Integer.parseInt(input);
-                firmenkosten += (gehalt * mitarbeiter);
-                System.out.println("Du zahlst jetzt " + gehalt * mitarbeiter + " € Lohn!");
-                System.out.println();
-                mitarbeiter();
-            }
+            mitarbeiter = Integer.parseInt(input);
         } else if(input.equals("payroll")) {
-            firmenkosten -= (gehalt*mitarbeiter);
-            System.out.println("Der Durchschnittslohn beträgt 15€ die Stunde");
             System.out.println("Auf welchen Betrag möchtest du das Mitarbeitergehalt setzen?");
             belegen();
-            if(Integer.parseInt(input) <= 0){
-                System.out.println("Du müsst deinen Mitarbeitern mind. 1€ Gehalt zahlen!");
-                firmenkosten += gehalt*mitarbeiter;
-                mitarbeiter();
-            } else {
-                gehalt = Integer.parseInt(input);
-                System.out.println("Du zahlst jetzt " + gehalt * mitarbeiter + " € Lohn!");
-                System.out.println();
-                firmenkosten += gehalt * mitarbeiter;
-                mitarbeiter();
-            }
+            gehalt = Integer.parseInt(input);
+            mitarbeiter();
         } else if(input.equals("return")){
             firmaVerwaltung();
         } else if(input.equals("menu")){
@@ -460,31 +439,6 @@ public class Account {
         } else {
             System.out.println("Eingabefehler!");
             mitarbeiter();
-        }
-    }
-
-
-    static void mitarbeiterZufriedenheit(int veränderung){ //veränderung ist dafür nützlich, zu erfassen, ob eine gehaltsänderung durchgeführt wurde oder ob es der regelmäßige methodenaufruf aus der methode "relaunch" ist
-        //bei durchschnittslohn von 15€ automatisch zufrieden, unter 10€ unzufrieden, unter 5€ sehr unzufrieden, über 20€ glücklich, über 25€ sehr glücklich
-        if (mitarbeiter >= 1) {
-            if (veränderung == 1) {
-                if (gehalt <= 5) {
-                    mitarbeiterzuf = 1;
-                } else if (gehalt <= 10) {
-                    mitarbeiterzuf = 2;
-                } else if (gehalt <= 20) {
-                    mitarbeiterzuf = 3;
-                } else if (gehalt < 20 && gehalt <= 25) {
-                    mitarbeiterzuf = 4;
-                } else if (gehalt > 25) {
-                    mitarbeiterzuf = 5;
-                } else {
-                    mitarbeiterzuf = 0; //Fehlerindikator
-                }
-            } else if (veränderung == 0) {
-                
-
-            }
         }
     }
 
@@ -508,7 +462,7 @@ public class Account {
         wait(500);
         belegen();
 
-        if(input.equals("send")){
+        if(input.equals("send")) {
             System.out.println("An welchen Nutzer soll Geld überwiesen werden?");
             System.out.println("Bitte gib hierzu die Nummer des jeweiligen Benutzers an!");
             System.out.println();
@@ -517,20 +471,26 @@ public class Account {
             wait(500);
             belegen();
             merker2 = Integer.parseInt(input);
-            if(benutzername[merker2]==null){
+            try{
+            if (benutzername[merker2] == null) {
                 System.out.println("Der Nutzer zu dieser Nummer existiert nicht!");
                 System.out.println();
             } else {
-                System.out.println("Wie viel Geld möchtest du "+ benutzername[merker2] + " senden?");
+                System.out.println("Wie viel Geld möchtest du " + benutzername[merker2] + " senden?");
                 wait(500);
                 belegen();
-                if(saldo[merker]>=Float.parseFloat(input)){
+                if (saldo[merker] >= Float.parseFloat(input)) {
                     saldo[merker] -= Float.parseFloat(input);
                     saldo[merker2] += Float.parseFloat(input);
                 } else {
                     System.out.println("Dein Saldo ist zu gering für diese Transaktion!");
                     geld();
                 }
+            }
+        }
+            catch (Exception e){
+                System.out.println("Ihre Eingabe ist ungültig");
+                geld();
             }
         } else if(input.equals("menu")){
             logged();
@@ -744,7 +704,6 @@ public class Account {
     }
 
     static void relaunch(){
-        mitarbeiterZufriedenheit(0);
         if(uhrzeitAlt!=dtf.format(LocalDateTime.now())){
             aktienÄndern();
         }
@@ -970,6 +929,11 @@ public class Account {
         else if (input.equals("menu")){
             logged();
         }
+        else{
+            System.out.println("");
+            System.out.println("Ihre Eingabe ist ungültig.");
+            post();
+        }
     }
 
     static void schreibePostfach(int benutzer, String nachricht){
@@ -1020,35 +984,80 @@ public class Account {
     }
 
     static void calculator(){
+        boolean richtigeEingabe = false;
         System.out.println("Rechenoperationen mit bis zu 3 Zahlen möglich!");
+
+        while(richtigeEingabe == false) {
         System.out.print("Erste Zahl:");
         System.out.println();
         wait(500);
         belegen();
-        a = umrechnen(input);
-        System.out.print("Operator:");
-        System.out.println();
+            try {
+                a = umrechnen(input);
+                richtigeEingabe = true;
+            } catch (Exception ex) {
+                System.out.println("Bitte nur Zahlen eingeben");
+            }
+        }
+        richtigeEingabe = false;
         wait(500);
-        belegen();
-        b = input;
-        System.out.print("Zweite Zahl:");
-        System.out.println();
-        wait(500);
-        belegen();
-        c = umrechnen(input);
+        while (richtigeEingabe == false) {
+            System.out.print("Operator:");
+            System.out.println();
+            belegen();
+            if (Objects.equals(input, "+") || Objects.equals(input, "*") || Objects.equals(input, "-") || Objects.equals(input, "/")){
+                b = input;
+                richtigeEingabe = true;
+            } else{
+                System.out.println("Bitte nur einen der folgenden Operatoren nutzen: + - * /");
+            }
+
+        }
+        richtigeEingabe = false;
+        while(richtigeEingabe == false) {
+            System.out.print("Zweite Zahl:");
+            System.out.println();
+            wait(500);
+            belegen();
+            try {
+                c = umrechnen(input);
+                richtigeEingabe = true;
+            } catch (Exception ex) {
+                System.out.println("Bitte nur Zahlen eingeben");
+            }
+        }
+        richtigeEingabe = false;
         System.out.println("Operator oder '=':");
-        wait(500);
-        belegen();
-        d = input;
+        while (richtigeEingabe == false) {
+            System.out.print("Operator:");
+            System.out.println();
+            belegen();
+            if (Objects.equals(input, "+") || Objects.equals(input, "*") || Objects.equals(input, "-") || Objects.equals(input, "/")|| Objects.equals(input, "=")){
+                d = input;
+                richtigeEingabe = true;
+            } else{
+                System.out.println("Bitte nur einen der folgenden Operatoren nutzen: + - * / =");
+            }
+
+        }
+        richtigeEingabe = false;
         if(input.equals("=")) {
             System.out.println();
             System.out.println("Ergebnis: " +Math.round(berechnen()*1000)/1000.0);
             System.out.println();
         } else {
-            System.out.println("Dritte Zahl:");
+            while(richtigeEingabe == false) {
+            System.out.print("Dritte Zahl:");
+            System.out.println();
             wait(500);
             belegen();
-            e = umrechnen(input);
+            try {
+                e = umrechnen(input);
+                richtigeEingabe = true;
+            } catch (Exception ex) {
+                System.out.println("Bitte nur Zahlen eingeben");
+            }
+        }
             System.out.println();
             System.out.println("Ergebnis: " +Math.round(berechnen()*1000)/1000.0);
             System.out.println();
@@ -1144,14 +1153,15 @@ public class Account {
     }
 
     static float umrechnen(String zahl){
-        if(zahl.contains(",")){
-            StringBuilder str = new StringBuilder(zahl);
-            str.setCharAt(1, '.');
-            zahl = str.toString();
+            if (zahl.contains(",")) {
+                StringBuilder str = new StringBuilder(zahl);
+                str.setCharAt(1, '.');
+                zahl = str.toString();
+                return Float.parseFloat(zahl);
+           }
             return Float.parseFloat(zahl);
         }
-        return Float.parseFloat(zahl);
-    }
+
 
     static void change(){
         if(loggedBen.equals("Admin")) {
