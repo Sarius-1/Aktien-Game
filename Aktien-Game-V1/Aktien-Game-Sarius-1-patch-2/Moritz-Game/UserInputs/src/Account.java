@@ -381,6 +381,8 @@ public class Account {
             System.out.println();
             System.out.println("Firma " + firmenname + " aufgelöst!");
             saldo[merker] += aktien[merker][3] * aktieFirma;
+            saldo[merker]+=saldo[10];
+            saldo[10] = 0;
             gegründet = false;
 
         } else if (input.equals("employ")) {
@@ -509,10 +511,21 @@ public class Account {
         firmenwertAlt = firmenwert;
         firmenwert = aktieFirma * 40;
         saldo[10] -= firmenkosten; //Ausgaben
-        einnahmen = (firmenwert - firmenwertAlt) / 10; //einnahmen
+        einnahmenFirma();
         saldo[10] += einnahmen;
     }
 
+    static void einnahmenFirma(){
+        einnahmen = (firmenwert-firmenwertAlt)/10; //Fixe Einnahmen basierend auf Firmenwertänderung (kann auch negativ sein)
+        if(mitarbeiter>0) {
+            einnahmen += rnd.nextFloat(10)*mitarbeiterzuf;
+            if(mitarbeiterzuf-2> 0) {
+                einnahmen += mitarbeiter * (mitarbeiterzuf - 2) * (aktieFirma / 5);
+            }
+            aktieFirma += (mitarbeiterzuf)*(mitarbeiter/10);
+        }
+    }
+    
     static void geld() {
         sucheB(loggedBen);
         System.out.println("Saldo: " + saldo[merker] + "€");
