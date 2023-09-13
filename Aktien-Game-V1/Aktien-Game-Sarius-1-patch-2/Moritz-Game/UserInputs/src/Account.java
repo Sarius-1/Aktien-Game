@@ -36,10 +36,10 @@ public class Account {
     static float aktie2alt = 150;
     static float aktie3alt = 50;
 
-    static float aktieFirma = 5;  //normaler Wert: 50 (ebenfalls für aktieFirmaAlt)
-    static float aktieFirmaAlt = 5;
-    static float firmenwert = 200; //normaler Wert: 2000 (ebenfalls für firmenwertAlt)
-    static float firmenwertAlt = 200;
+    static float aktieFirma = 50;  //normaler Wert: 50 (ebenfalls für aktieFirmaAlt)
+    static float aktieFirmaAlt = 50;
+    static float firmenwert = 2000; //normaler Wert: 2000 (ebenfalls für firmenwertAlt)
+    static float firmenwertAlt = 2000;
     static String firmenname;
     static float firmenkosten = 20;
     static boolean gegründet = false;
@@ -326,7 +326,7 @@ public class Account {
             System.out.println("Veränderung: " + (aktieFirma - aktieFirmaAlt) + " €");
         }
         System.out.println();
-        System.out.println("Einnahmen: " + (firmenwert - firmenwertAlt) / 10 + " €");
+        System.out.println("Einnahmen: " +einnahmen + " €");
         System.out.println("Ausgaben: -" + firmenkosten + " €");
         if ((einnahmen - firmenkosten >= 0)) {
             System.out.println(ANSI_GREEN + "Veränderung: " + (einnahmen - firmenkosten) + ANSI_RESET);
@@ -642,8 +642,8 @@ public class Account {
         System.out.println("Aktie 4: " + aktien[merker][3] + " Stück");
         System.out.println();
         System.out.println("Aktien neu berechnen: relaunch");
-        System.out.println("Aktie(n) kaufen und danach neu berechnen: buy");
-        System.out.println("Aktie(n) verkaufen und danach neu berechnen: sell");
+        System.out.println("Aktie(n) kaufen: buy");
+        System.out.println("Aktie(n) verkaufen: sell");
         System.out.println("Hauptmenü aufrufen: menu");
         wait(500);
         belegen();
@@ -764,6 +764,15 @@ public class Account {
                     if (aktien[merker][merkerAktie] >= Integer.parseInt(input)) {
                         aktien[merker][merkerAktie] -= Integer.parseInt(input);
                         saldo[merker] += Integer.parseInt(input) * aktieFirma;
+                        if(aktien[merker][merkerAktie]==0){ //FIrma wird automatisch verkauft, sobald der Nutzer keine Aktien mehr hält
+                            System.out.println();
+                            System.out.println("Firma " + firmenname + " aufgelöst!");
+                            System.out.println();
+                            saldo[merker] += aktien[merker][3] * aktieFirma;
+                            saldo[merker]+=saldo[10];
+                            saldo[10] = 0;
+                            gegründet = false;
+                        }
                     } else {
                         System.out.println(ANSI_RED + "Du hast nicht so viele Aktien von dieser Firma!" + ANSI_RESET);
                     }
@@ -888,6 +897,7 @@ public class Account {
                 aktien[merker][3] = 0;
                 gegründet = false;
                 saldo[merker] += saldo[10];
+                logged();
             } else {
                 insolvenz();
             }
