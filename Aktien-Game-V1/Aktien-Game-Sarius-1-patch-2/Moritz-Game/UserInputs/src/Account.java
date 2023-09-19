@@ -36,10 +36,10 @@ public class Account {
     static float aktie2alt = 150;
     static float aktie3alt = 50;
 
-    static float aktieFirma = 50;  //normaler Wert: 50 (ebenfalls für aktieFirmaAlt)
-    static float aktieFirmaAlt = 50;
-    static float firmenwert = 2000; //normaler Wert: 2000 (ebenfalls für firmenwertAlt)
-    static float firmenwertAlt = 2000;
+    static float aktieFirma = 5;  //normaler Wert: 50 (ebenfalls für aktieFirmaAlt)
+    static float aktieFirmaAlt = 5;
+    static float firmenwert = 200; //normaler Wert: 2000 (ebenfalls für firmenwertAlt)
+    static float firmenwertAlt = 200;
     static String firmenname;
     static float firmenkosten = 20;
     static boolean gegründet = false;
@@ -326,7 +326,7 @@ public class Account {
             System.out.println("Veränderung: " + (aktieFirma - aktieFirmaAlt) + " €");
         }
         System.out.println();
-        System.out.println("Einnahmen: " +einnahmen + " €");
+        System.out.println("Einnahmen: " + (firmenwert - firmenwertAlt) / 10 + " €");
         System.out.println("Ausgaben: -" + firmenkosten + " €");
         if ((einnahmen - firmenkosten >= 0)) {
             System.out.println(ANSI_GREEN + "Veränderung: " + (einnahmen - firmenkosten) + ANSI_RESET);
@@ -381,8 +381,6 @@ public class Account {
             System.out.println();
             System.out.println("Firma " + firmenname + " aufgelöst!");
             saldo[merker] += aktien[merker][3] * aktieFirma;
-            saldo[merker]+=saldo[10];
-            saldo[10] = 0;
             gegründet = false;
 
         } else if (input.equals("employ")) {
@@ -511,21 +509,10 @@ public class Account {
         firmenwertAlt = firmenwert;
         firmenwert = aktieFirma * 40;
         saldo[10] -= firmenkosten; //Ausgaben
-        einnahmenFirma();
+        einnahmen = (firmenwert - firmenwertAlt) / 10; //einnahmen
         saldo[10] += einnahmen;
     }
 
-    static void einnahmenFirma(){
-        einnahmen = (firmenwert-firmenwertAlt)/10; //Fixe Einnahmen basierend auf Firmenwertänderung (kann auch negativ sein)
-        if(mitarbeiter>0) {
-            einnahmen += rnd.nextFloat(10)*mitarbeiterzuf;
-            if(mitarbeiterzuf-2> 0) {
-                einnahmen += mitarbeiter * (mitarbeiterzuf - 2) * (aktieFirma / 5);
-            }
-            aktieFirma += (mitarbeiterzuf)*(mitarbeiter/10);
-        }
-    }
-    
     static void geld() {
         sucheB(loggedBen);
         System.out.println("Saldo: " + saldo[merker] + "€");
@@ -546,7 +533,13 @@ public class Account {
             System.out.println();
             wait(500);
             belegen();
-            merker2 = Integer.parseInt(input);
+            try {
+                merker2 = Integer.parseInt(input);
+            }
+            catch (Exception x){
+                System.out.println("Bitte gib die Nummer des gewünschten Nutzers an");
+                geld();
+            }
             try {
                 if (benutzername[merker2] == null) {
                     System.out.println("Der Nutzer zu dieser Nummer existiert nicht!");
@@ -642,8 +635,8 @@ public class Account {
         System.out.println("Aktie 4: " + aktien[merker][3] + " Stück");
         System.out.println();
         System.out.println("Aktien neu berechnen: relaunch");
-        System.out.println("Aktie(n) kaufen: buy");
-        System.out.println("Aktie(n) verkaufen: sell");
+        System.out.println("Aktie(n) kaufen und danach neu berechnen: buy");
+        System.out.println("Aktie(n) verkaufen und danach neu berechnen: sell");
         System.out.println("Hauptmenü aufrufen: menu");
         wait(500);
         belegen();
@@ -764,15 +757,6 @@ public class Account {
                     if (aktien[merker][merkerAktie] >= Integer.parseInt(input)) {
                         aktien[merker][merkerAktie] -= Integer.parseInt(input);
                         saldo[merker] += Integer.parseInt(input) * aktieFirma;
-                        if(aktien[merker][merkerAktie]==0){ //FIrma wird automatisch verkauft, sobald der Nutzer keine Aktien mehr hält
-                            System.out.println();
-                            System.out.println("Firma " + firmenname + " aufgelöst!");
-                            System.out.println();
-                            saldo[merker] += aktien[merker][3] * aktieFirma;
-                            saldo[merker]+=saldo[10];
-                            saldo[10] = 0;
-                            gegründet = false;
-                        }
                     } else {
                         System.out.println(ANSI_RED + "Du hast nicht so viele Aktien von dieser Firma!" + ANSI_RESET);
                     }
@@ -859,28 +843,35 @@ public class Account {
         System.out.println();
         System.out.println("Möchtest du die Firma mit Eigenkapital vor der Insolvenz retten? y/n");
         belegen();
-        if (input.equals("y")) {
-            sucheB(loggedBen);
-            System.out.println("Saldo: " + saldo[merker] + "€");
-            System.out.println();
-            System.out.println("Wie viel Geld möchtest du in die Firma investieren?");
-            if (aktieFirma <= 0) {
-                System.out.println("Der Firmenwert steigt auf ein Viertel der Einzahlung, der Aktienwert auf ein Hundertsechzigstel!");
-                belegen();
-                if (saldo[merker] >= Float.parseFloat(input)) {
-                    saldo[merker] -= Float.parseFloat(input);
-                    aktieFirmaAlt = aktieFirma;
-                    aktieFirma += (Float.parseFloat(input) / 160);
-                    System.out.println(ANSI_GREEN + "Insolvenz vorerst abgewendet!" + ANSI_RESET);
+        try {
+            if (input.equals("y")) {
+                sucheB(loggedBen);
+                System.out.println("Saldo: " + saldo[merker] + "€");
+                System.out.println();
+                System.out.println("Wie viel Geld möchtest du in die Firma investieren?");
+                if (aktieFirma <= 0) {
+                    System.out.println("Der Firmenwert steigt auf ein Viertel der Einzahlung, der Aktienwert auf ein Hundertsechzigstel!");
+                    belegen();
 
-                } else {
+
+                    if (saldo[merker] >= Float.parseFloat(input)) {
+                        saldo[merker] -= Float.parseFloat(input);
+                        aktieFirmaAlt = aktieFirma;
+                        aktieFirma += (Float.parseFloat(input) / 160);
+                        System.out.println(ANSI_GREEN + "Insolvenz vorerst abgewendet!" + ANSI_RESET);
+                    }
+
+
+                 else {
                     System.out.println("Dein Saldo ist zu gering für diese Transaktion!");
                     insolvenz();
                 }
-            } else {
-                System.out.println("Dein Firmenkonto hat ein negatives Saldo");
-                System.out.println("Eine einfache Begleichung der Schulden genügt, um die Insolvenz abzuwenden");
-                belegen();
+            }
+             else{
+                    System.out.println("Dein Firmenkonto hat ein negatives Saldo");
+                    System.out.println("Eine einfache Begleichung der Schulden genügt, um die Insolvenz abzuwenden");
+                    belegen();
+                }
                 if (saldo[merker] >= Float.parseFloat(input)) {
                     saldo[merker] -= Float.parseFloat(input);
                     saldo[10] += Float.parseFloat(input);
@@ -890,19 +881,27 @@ public class Account {
                     insolvenz();
                 }
             }
-        } else {
-            System.out.println("Möchtest du die Firma wiklich auflösen? y/n");
-            belegen();
-            if (input.equals("y")) {
-                aktien[merker][3] = 0;
-                gegründet = false;
-                saldo[merker] += saldo[10];
-                logged();
-            } else {
-                insolvenz();
+
+
+        else{
+                System.out.println("Möchtest du die Firma wiklich auflösen? y/n");
+                belegen();
+                if (input.equals("y")) {
+                    aktien[merker][3] = 0;
+                    gegründet = false;
+                    saldo[merker] += saldo[10];
+                } else {
+                    insolvenz();
+                }
             }
         }
+
+        catch(Exception eR){
+            System.out.println("Bitte geben sie eine Zahl ein");
+            insolvenz();
+        }
     }
+
 
     static void aktienÄndern() {
         aktie1alt = aktie1;
