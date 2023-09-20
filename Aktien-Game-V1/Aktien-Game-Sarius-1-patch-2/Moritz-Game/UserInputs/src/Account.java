@@ -555,7 +555,13 @@ public class Account {
             System.out.println();
             wait(500);
             belegen();
-            merker2 = Integer.parseInt(input);
+            try {
+                merker2 = Integer.parseInt(input);
+            }
+            catch (Exception x){
+                System.out.println("Bitte gib die Nummer des gewünschten Nutzers an");
+                geld();
+            }
             try {
                 if (benutzername[merker2] == null) {
                     System.out.println("Der Nutzer zu dieser Nummer existiert nicht!");
