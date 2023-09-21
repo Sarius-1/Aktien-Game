@@ -413,25 +413,13 @@ public class Account {
         System.out.println("Aktuelle Mitarbeiterzahl: " + mitarbeiter[merker]);
         if (mitarbeiter[merker] >= 1) {
             System.out.print("Aktuelle Mitarbeiterzufriedenheit: ");
-            switch (mitarbeiterzuf[merker]) {
-                case 1:
-                    System.out.println("sehr unglücklich");
-                    break;
-                case 2:
-                    System.out.println("unglücklich");
-                    break;
-                case 3:
-                    System.out.println("zufrieden");
-                    break;
-                case 4:
-                    System.out.println("glücklich");
-                    break;
-                case 5:
-                    System.out.println("sehr glücklich");
-                    break;
-                case 0:
-                    System.out.println("FEHLER");
-                    break;
+            switch (mitarbeiterzuf[merker]){
+                case 1: System.out.println("sehr unglücklich"); break;
+                case 2: System.out.println("unglücklich"); break;
+                case 3: System.out.println("zufrieden"); break;
+                case 4: System.out.println("glücklich"); break;
+                case 5: System.out.println("sehr glücklich"); break;
+                case 0: System.out.println("FEHLER"); break;
             }
         } else {
             System.out.println("Aktuelle Mitarbeiterzufriedenheit: -");
