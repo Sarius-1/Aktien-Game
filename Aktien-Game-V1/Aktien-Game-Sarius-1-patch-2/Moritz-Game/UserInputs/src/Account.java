@@ -53,9 +53,12 @@ public class Account {
     static boolean aktie12ins = false;
     static boolean aktie13ins = false;
 
-    static int aktien[][] = new int[maxNutzer][maxNutzer+3]; //Index 10, 11 und 12 für NPC-Aktien
+    static int[][] aktien = new int[maxNutzer][maxNutzer + 3]; //Index 10, 11 und 12 für NPC-Aktien
     static int merkerAktie;
 
+    static boolean[] firmaAufgelöst = new boolean[maxNutzer];
+    static boolean übertragungLäuft = false;
+    static int maxAktienNutzer = -1; //erfasst den Nutzer mit den meisten Aktien, standartwert -1, um fehler aufzusprüren
     static String b, d;
     static float a, c, e;
     static String loggedBen;
@@ -232,8 +235,18 @@ public class Account {
 
     static void logged() {
         uhrzeitAlt = dtf.format(LocalDateTime.now());
+        if (maxAktienNutzer != -1) {
+            if (loggedBen.equals(benutzername[maxAktienNutzer])) {
+                for(int i = 0; i<maxNutzer;i++){
+                    if(firmaAufgelöst[i]){
+                        firmaÜbertragen(i);
+                    }
+                }
+            }
+        }
         drucken();
         hauptmenue();
+
     }
 
     static void drucken() {
@@ -261,10 +274,10 @@ public class Account {
         System.out.print("Firmenmenü:");
         System.out.println();
         if (!gegründet[merker]) {
-            System.out.println("Du hast bisher keine Firma gegründet! Einmalige Kosten zum Gründen betragen 3000€!");
+            System.out.println("Du hast bisher keine Firma gegründet! Einmalige Kosten zum Gründen betragen 2500€!");
             System.out.println("Des weiteren belaufen sich die Kosten bei jedem Relaunch auf 20€");
-            System.out.println("Die Firma wird direkt als AG gemeldet, jede Aktie ist zu Beginn 50€ wert.");
-            System.out.println("Du bekommst nach dem Gründen 50% Firmenanteile, also 20 Aktien");
+            System.out.println("Die Firma wird direkt als AG gemeldet, jede Aktie ist zu Beginn 50€ Wert.");
+            System.out.println("Du bekommst nach dem Gründen 50% Firmenanteile, also 20 Aktien.");
             System.out.println();
             System.out.println();
             System.out.println("Gründen der Firma: found");
@@ -288,12 +301,12 @@ public class Account {
         firmenwertAlt[merker] = 2000;
         firmensaldo[merker] = 100;
         System.out.println();
-        if (saldo[merker] < 3000) {
+        if (saldo[merker] < 2500) {
             System.out.println("Du verfügst nicht über genügend Geldmittel, um eine Firma zu gründen!");
             logged();
         } else {
-            saldo[merker] -= 3000;
-            System.out.println("3000€ wurden von deinem Konto abgebucht!");
+            saldo[merker] -= 2500;
+            System.out.println("2500€ wurden von deinem Konto abgebucht!");
             System.out.println("Gib nun den Namen deiner neuen Firma ein");
             belegen();
             firmenname[merker] = input;
@@ -329,7 +342,7 @@ public class Account {
             System.out.println("Veränderung: " + (aktieFirma[merker] - aktieFirmaAlt[merker]) + " €");
         }
         System.out.println();
-        System.out.println("Einnahmen: " +einnahmen[merker] + " €");
+        System.out.println("Einnahmen: " + einnahmen[merker] + " €");
         System.out.println("Ausgaben: -" + firmenkosten[merker] + " €");
         if ((einnahmen[merker] - firmenkosten[merker] >= 0)) {
             System.out.println(ANSI_GREEN + "Veränderung: " + (einnahmen[merker] - firmenkosten[merker]) + ANSI_RESET);
@@ -347,6 +360,7 @@ public class Account {
         System.out.println("Geld auf das Firmenkonto überweisen: send");
         System.out.println("Geld von dem Firmenkonto abheben: withdraw");
         System.out.println("Firma verkaufen: sell");
+        System.out.println("Aktienmarkt aufrufen: stonks");
         System.out.println("Zurück zum Hauptmenü: menu");
         belegen();
         if (input.equals("menu")) {
@@ -384,6 +398,8 @@ public class Account {
             firmaAuflösen();
         } else if (input.equals("employ")) {
             mitarbeiter();
+        } else if(input.equals("stonks")){
+            aktienmarkt();
         } else {
             System.out.println("Eingabefehler!");
             firmaVerwaltung();
@@ -391,41 +407,53 @@ public class Account {
     }
 
 
-    static void mitarbeiter(){
+    static void mitarbeiter() {
         System.out.println("Mitarbeiterverwaltung:");
         System.out.println();
-        System.out.println("Aktuelle Mitarbeiterzahl: "+mitarbeiter[merker]);
-        if(mitarbeiter[merker]>=1){
+        System.out.println("Aktuelle Mitarbeiterzahl: " + mitarbeiter[merker]);
+        if (mitarbeiter[merker] >= 1) {
             System.out.print("Aktuelle Mitarbeiterzufriedenheit: ");
-            switch (mitarbeiterzuf[merker]){
-                case 1: System.out.println("sehr unglücklich"); break;
-                case 2: System.out.println("unglücklich"); break;
-                case 3: System.out.println("zufrieden"); break;
-                case 4: System.out.println("glücklich"); break;
-                case 5: System.out.println("sehr glücklich"); break;
-                case 0: System.out.println("FEHLER"); break;
+            switch (mitarbeiterzuf[merker]) {
+                case 1:
+                    System.out.println("sehr unglücklich");
+                    break;
+                case 2:
+                    System.out.println("unglücklich");
+                    break;
+                case 3:
+                    System.out.println("zufrieden");
+                    break;
+                case 4:
+                    System.out.println("glücklich");
+                    break;
+                case 5:
+                    System.out.println("sehr glücklich");
+                    break;
+                case 0:
+                    System.out.println("FEHLER");
+                    break;
             }
         } else {
             System.out.println("Aktuelle Mitarbeiterzufriedenheit: -");
         }
-        System.out.println("Mitarbeitergehalt: "+gehalt[merker]+ " €");
+        System.out.println("Mitarbeitergehalt: " + gehalt[merker] + " €");
         System.out.println();
         System.out.println("Mitarbeiterzahl ändern: change");
         System.out.println("Mitarbeitergehalt ändern: payroll");
         System.out.println("Zurück zur Firmenübersicht: return");
         System.out.println("Zurück zum Hauptmenü: menu");
         belegen();
-        if(input.equals("change")){
-            firmenkosten[merker] -= (gehalt[merker]*mitarbeiter[merker]);
+        if (input.equals("change")) {
+            firmenkosten[merker] -= (gehalt[merker] * mitarbeiter[merker]);
             System.out.println("Mit deiner aktuellen Bürofläche kannst du bis zu 3 Mitarbeiter anstellen");
             System.out.println("Wie viele Mitarbeiter möchtest du beschäftigen?");
             belegen();
-            if(Integer.parseInt(input)+mitarbeiter[merker]>3){
+            if (Integer.parseInt(input) + mitarbeiter[merker] > 3) {
                 System.out.println("Mit deiner aktuellen Bürofläche kannst du nur maximal 3 Mitarbeiter beschäftigen");
-                firmenkosten[merker] += (gehalt[merker]*mitarbeiter[merker]);
+                firmenkosten[merker] += (gehalt[merker] * mitarbeiter[merker]);
                 mitarbeiter();
             } else {
-                if(mitarbeiter[merker]!=Integer.parseInt(input)){
+                if (mitarbeiter[merker] != Integer.parseInt(input)) {
                     mitarbeiter[merker] = Integer.parseInt(input);
                     mitarbeiterZufriedenheit(1);
                 } else {
@@ -436,17 +464,17 @@ public class Account {
                 System.out.println();
                 mitarbeiter();
             }
-        } else if(input.equals("payroll")) {
-            firmenkosten[merker] -= (gehalt[merker]*mitarbeiter[merker]);
+        } else if (input.equals("payroll")) {
+            firmenkosten[merker] -= (gehalt[merker] * mitarbeiter[merker]);
             System.out.println("Der Durchschnittslohn beträgt 15€ die Stunde");
             System.out.println("Auf welchen Betrag möchtest du das Mitarbeitergehalt setzen?");
             belegen();
-            if(Integer.parseInt(input) <= 0){
+            if (Integer.parseInt(input) <= 0) {
                 System.out.println("Du müsst deinen Mitarbeitern mind. 1€ Gehalt zahlen!");
-                firmenkosten[merker] += gehalt[merker]*mitarbeiter[merker];
+                firmenkosten[merker] += gehalt[merker] * mitarbeiter[merker];
                 mitarbeiter();
             } else {
-                if(gehalt[merker]!=Integer.parseInt(input)){
+                if (gehalt[merker] != Integer.parseInt(input)) {
                     gehalt[merker] = Integer.parseInt(input);
                     mitarbeiterZufriedenheit(1);
                 } else {
@@ -457,9 +485,9 @@ public class Account {
                 firmenkosten[merker] += gehalt[merker] * mitarbeiter[merker];
                 mitarbeiter();
             }
-        } else if(input.equals("return")){
+        } else if (input.equals("return")) {
             firmaVerwaltung();
-        } else if(input.equals("menu")){
+        } else if (input.equals("menu")) {
             logged();
         } else {
             System.out.println("Eingabefehler!");
@@ -468,9 +496,9 @@ public class Account {
     }
 
 
-    static void mitarbeiterZufriedenheit(int veränderung){ //veränderung ist dafür nützlich, zu erfassen, ob eine gehaltsänderung durchgeführt wurde oder ob es der regelmäßige methodenaufruf aus der methode "relaunch" ist
+    static void mitarbeiterZufriedenheit(int veränderung) { //veränderung ist dafür nützlich, zu erfassen, ob eine gehaltsänderung durchgeführt wurde oder ob es der regelmäßige methodenaufruf aus der methode "relaunch" ist
         //bei durchschnittslohn von 15€ automatisch zufrieden, unter 10€ unzufrieden, unter 5€ sehr unzufrieden, über 20€ glücklich, über 25€ sehr glücklich
-        for(int i = 0; i<maxNutzer;i++) {
+        for (int i = 0; i < maxNutzer; i++) {
             if (mitarbeiter[merker] >= 1) {
                 if (veränderung == 1) {
                     if (gehalt[i] <= 5) {
@@ -510,11 +538,9 @@ public class Account {
     }
 
 
-
-
     static void einnahmenAusgaben() {
-        for(int firma = 0; firma <maxNutzer;firma++) {
-            if(gegründet[firma]) {
+        for (int firma = 0; firma < maxNutzer; firma++) {
+            if (gegründet[firma]) {
                 firmenwertAlt[firma] = firmenwert[firma];
                 firmenwert[firma] = aktieFirma[firma] * 40;
                 firmensaldo[firma] -= firmenkosten[firma]; //Ausgaben
@@ -524,14 +550,14 @@ public class Account {
         }
     }
 
-    static void einnahmenFirma(int firma){
-        einnahmen[firma] = (firmenwert[firma]-firmenwertAlt[firma])/10; //Fixe Einnahmen basierend auf Firmenwertänderung (kann auch negativ sein)
-        if(mitarbeiter[firma]>0) {
-            einnahmen[firma] += rnd.nextFloat()*rnd.nextInt(10)*mitarbeiterzuf[firma];
-            if(mitarbeiterzuf[firma]-2> 0) {
+    static void einnahmenFirma(int firma) {
+        einnahmen[firma] = (firmenwert[firma] - firmenwertAlt[firma]) / 10; //Fixe Einnahmen basierend auf Firmenwertänderung (kann auch negativ sein)
+        if (mitarbeiter[firma] > 0) {
+            einnahmen[firma] += rnd.nextFloat() * rnd.nextInt(10) * mitarbeiterzuf[firma];
+            if (mitarbeiterzuf[firma] - 2 > 0) {
                 einnahmen[firma] += mitarbeiter[firma] * (mitarbeiterzuf[firma] - 2) * (aktieFirma[firma] / 5);
             }
-            aktieFirma[firma] += (mitarbeiterzuf[firma])*(mitarbeiter[firma]/10);
+            aktieFirma[firma] += (mitarbeiterzuf[firma]) * (mitarbeiter[firma] / 10);
         }
     }
 
@@ -555,13 +581,7 @@ public class Account {
             System.out.println();
             wait(500);
             belegen();
-            try {
-                merker2 = Integer.parseInt(input);
-            }
-            catch (Exception x){
-                System.out.println("Bitte gib die Nummer des gewünschten Nutzers an");
-                geld();
-            }
+            merker2 = Integer.parseInt(input);
             try {
                 if (benutzername[merker2] == null) {
                     System.out.println("Der Nutzer zu dieser Nummer existiert nicht!");
@@ -602,9 +622,9 @@ public class Account {
         System.out.println("Aktienmarkt:");
         System.out.println();
 
-        for(int firma = 0; firma < maxNutzer; firma++) {
+        for (int firma = 0; firma < maxNutzer; firma++) {
             if (gegründet[firma]) {
-                System.out.println("Aktie "+(firma+1)+", " + firmenname[firma] + ", aktueller Wert: " + aktieFirma[firma] + " €");
+                System.out.println("Aktie " + (firma + 1) + ", " + firmenname[firma] + ", aktueller Wert: " + aktieFirma[firma] + " €");
                 System.out.println("Alter Wert: " + aktieFirmaAlt[firma] + " €");
                 if (aktieFirma[firma] - aktieFirmaAlt[firma] > 10) {
                     System.out.println(ANSI_GREEN + "Veränderung: " + (aktieFirma[firma] - aktieFirmaAlt[firma]) + " €" + ANSI_RESET);
@@ -655,9 +675,9 @@ public class Account {
         }
 
         System.out.println("Mein Portfolio:");
-        for(int firma = 0; firma < maxNutzer; firma++){
-            if(gegründet[firma]){
-                System.out.println("Aktie "+(firma+1)+": "+aktien[merker][firma]+" Stück");
+        for (int firma = 0; firma < maxNutzer; firma++) {
+            if (gegründet[firma]) {
+                System.out.println("Aktie " + (firma + 1) + ": " + aktien[merker][firma] + " Stück; noch erhältlich: " + verkAktienBerechnen(firma) + " Stück");
             }
         }
         System.out.println("Aktie 11: " + aktien[merker][10] + " Stück");
@@ -665,6 +685,7 @@ public class Account {
         System.out.println("Aktie 13: " + aktien[merker][12] + " Stück");
         System.out.println();
         System.out.println("Aktien neu berechnen: relaunch");
+        System.out.println("Firmenmenü aufrufen: firma");
         System.out.println("Aktie(n) kaufen: buy");
         System.out.println("Aktie(n) verkaufen: sell");
         System.out.println("Hauptmenü aufrufen: menu");
@@ -686,7 +707,7 @@ public class Account {
                 belegen();
                 merkerAktie = Integer.parseInt(input) - 1;
                 //try {
-                switch (merkerAktie){
+                switch (merkerAktie) {
                     case 10:
                         System.out.println("Wie viele Aktien möchtest du davon kaufen?");
                         wait(500);
@@ -697,7 +718,7 @@ public class Account {
                             System.out.println("Kauf erfolgreich!");
                             System.out.println();
                         } else {
-                         System.out.println(ANSI_RED + "Du verfügst nicht über die nötigen Geldmittel!" + ANSI_RESET);
+                            System.out.println(ANSI_RED + "Du verfügst nicht über die nötigen Geldmittel!" + ANSI_RESET);
                         }
                         break;
 
@@ -716,11 +737,11 @@ public class Account {
                         break;
                     case 12:
                         System.out.println("Wie viele Aktien möchtest du davon kaufen?");
-                         wait(500);
+                        wait(500);
                         belegen();
                         if (saldo[merker] >= (Integer.parseInt(input) * aktie13)) {
-                             saldo[merker] -= Integer.parseInt(input) * aktie13;
-                             aktien[merker][merkerAktie] += Integer.parseInt(input);
+                            saldo[merker] -= Integer.parseInt(input) * aktie13;
+                            aktien[merker][merkerAktie] += Integer.parseInt(input);
                             System.out.println("Kauf erfolgreich!");
                             System.out.println();
                         } else {
@@ -737,7 +758,7 @@ public class Account {
                     case 8:
                     case 9:
                     case 0:
-                        if(!(gegründet[merkerAktie])){
+                        if (!(gegründet[merkerAktie])) {
                             System.out.println("Die Firma mit dieser Nummer existiert nicht!");
                             aktienmarkt();
                             break;
@@ -746,13 +767,13 @@ public class Account {
                             wait(500);
                             belegen();
                             if (saldo[merker] >= (Integer.parseInt(input) * aktieFirma[merker])) {
-                                if (aktien[merker][merkerAktie] + Integer.parseInt(input) <= 40) {
+                                if (Integer.parseInt(input) <= verkAktienBerechnen(merkerAktie)) {
                                     saldo[merker] -= Integer.parseInt(input) * aktieFirma[merker];
                                     aktien[merker][merkerAktie] += Integer.parseInt(input);
                                     System.out.println("Kauf erfolgreich!");
                                     System.out.println();
                                 } else {
-                                    System.out.println("Du kannst nicht mehr als 40 Aktien besitzen");
+                                    System.out.println("Es sind aktuell nur " + verkAktienBerechnen(merkerAktie) + " Aktie(n) von dieser Firma verfügbar!");
                                     System.out.println();
                                     break;
                                 }
@@ -774,7 +795,7 @@ public class Account {
                 wait(500);
                 belegen();
                 merkerAktie = Integer.parseInt(input) - 1;
-                switch (merkerAktie){
+                switch (merkerAktie) {
                     case 10:
                         System.out.println("Wie viele Aktien möchtest du verkaufen?");
                         wait(500);
@@ -819,21 +840,21 @@ public class Account {
                     case 8:
                     case 9:
                     case 0:
-                        if(!(gegründet[merkerAktie])){
+                        if (!(gegründet[merkerAktie])) {
                             System.out.println("Die Firma mit dieser Nummer existiert nicht!");
                             aktienmarkt();
                         } else {
                             System.out.println("Wie viele Aktien möchtest du davon verkaufen?");
                             wait(500);
                             belegen();
-                            if (aktien[merker][merkerAktie]>=Integer.parseInt(input)) {
-                                    saldo[merker] += Integer.parseInt(input) * aktieFirma[merker];
-                                    aktien[merker][merkerAktie] -= Integer.parseInt(input);
-                                    System.out.println("Verkauf erfolgreich!");
-                                    System.out.println();
-                                    if(aktien[merker][merker]==0){
-                                        firmaAuflösen();
-                                    }
+                            if (aktien[merker][merkerAktie] >= Integer.parseInt(input)) {
+                                saldo[merker] += Integer.parseInt(input) * aktieFirma[merker];
+                                aktien[merker][merkerAktie] -= Integer.parseInt(input);
+                                System.out.println("Verkauf erfolgreich!");
+                                System.out.println();
+                                if (aktien[merker][merker] == 0) {
+                                    firmaAuflösen();
+                                }
                             } else {
                                 System.out.println(ANSI_RED + "Du kannst nicht mehr Aktien verkaufen als du besitzt!" + ANSI_RESET);
                                 break;
@@ -848,12 +869,15 @@ public class Account {
                 }
             } else if (input.equals("menu")) {
                 logged();
+            } else if(input.equals("firma")){
+                firma();
             } else {
                 System.out.println("Fehlerhafte Eingabe, zurück zum Hauptmenü");
                 logged();
             }
         } catch (Exception ec) {
-            System.out.println("Ihre Eingabe ist ungültig, bitte geben Sie nur (natürliche) Zahlen ein.");
+            System.out.println("Exception aufgefangen!");
+            System.out.println("Bitte Eingabe prüfen oder Entwickler kontaktieren!");
             aktienmarkt();
         }
         aktienmarkt();
@@ -862,6 +886,18 @@ public class Account {
 
     static void relaunch() {
         mitarbeiterZufriedenheit(0);
+        for (int firma = 0; firma < maxNutzer; firma++) {
+            if (firmaAufgelöst[firma]) {
+                System.out.println();
+                System.out.println(ANSI_RED + "Relaunch nicht möglich, da eine Firmenübertragung läuft!" + ANSI_RESET);
+                System.out.println();
+                if (!übertragungLäuft) {
+                    firmaÜbertragen(firma);
+                } else {
+                    aktienmarkt();
+                }
+            }
+        }
         if (uhrzeitAlt != dtf.format(LocalDateTime.now())) {
             aktienÄndern();
         }
@@ -918,17 +954,125 @@ public class Account {
     }
 
 
-    static void firmaAuflösen(){
-        System.out.println();
-        System.out.println("Firma " + firmenname[merker] + " aufgelöst!");
-        System.out.println();
-        saldo[merker]+=firmensaldo[merker];
-        System.out.println("FIRMENAKTIEN DEBUG: "+aktien[merker][merker]);
-        saldo[merker] += aktien[merker][merker] * aktieFirma[merker];
-        aktien[merker][merker] = 0;
-        firmensaldo[merker] = 0;
-        gegründet[merker] = false;
+    static int verkAktienBerechnen(int firma) {
+        int anzahl = 0;
+        for (int nutzer = 0; nutzer < maxNutzer; nutzer++) {
+            if (aktien[nutzer][firma] != 0) {
+                anzahl += aktien[nutzer][firma];
+            }
+        }
+        return 40 - anzahl;
     }
+
+    static void firmaAuflösen() {
+        System.out.println();
+        System.out.println("Firma " + firmenname[merker] + " wurde abgetreten!");
+        System.out.println();
+        if (verkAktienBerechnen(merker) == 40) { //wenn 40 Aktien übrig sind, hat kein weiterer nutzer Anteile und die Firma wird normal aufgelöst
+            if (firmensaldo[merker] > 0) {
+                saldo[merker] += firmensaldo[merker];
+            }
+            if (aktien[merker][merker] * aktieFirma[merker] > 0) {
+                saldo[merker] += aktien[merker][merker] * aktieFirma[merker];
+            }
+            aktien[merker][merker] = 0;
+            firmensaldo[merker] = 0;
+            gegründet[merker] = false;
+        } else {
+            if (aktien[merker][merker] * aktieFirma[merker] > 0) {
+                saldo[merker] += aktien[merker][merker] * aktieFirma[merker];
+            }
+            aktien[merker][merker] = 0;
+            firmaAufgelöst[merker] = true;
+            firmaÜbertragen(merker);
+        }
+    }
+
+    static void firmaÜbertragen(int firma) {
+        übertragungLäuft = true;
+        //Überprüfung, welcher Nutzer die meisten Anteile/Aktien hat
+        maxAktienNutzer = -1; //erfasst den Nutzer mit den meisten Aktien
+        int maxAktien = aktien[0][firma]; //erfasst die Anzahl Aktien, vorbelegt mit Nutzer 0
+        for (int i = 1; i < maxNutzer; i++) {
+            if (aktien[i][firma] > maxAktien) {
+                maxAktien = aktien[i][firma];
+                maxAktienNutzer = i;
+            } else if (aktien[i][firma] == maxAktien && maxAktien != 0) {
+                //Zwei Personen haben gleiche Anzahl an Aktien
+                System.out.println("Gleiche Anzahl an Aktien zwischen Nutzern");
+                System.out.println("Noch in Arbeit");
+            }
+        }
+        if (!loggedBen.equals(benutzername[maxAktienNutzer])) {
+            System.out.println("Die Firmenauflösung ist noch im Gange, bitte warten");
+            aktienmarkt();
+        } else if (loggedBen.equals(benutzername[maxAktienNutzer])) {
+            System.out.println();
+            System.out.println("Der Inhaber der Firma " + firmenname[firma] + " hat seine Anteile verkauft.");
+            System.out.println("Da du der Nutzer mit den meisten Aktien bist, hast du die Möglichkeit, die Firma zu übernehmen oder sie aufzulösen");
+            System.out.println("Aktueller Firmenwert: " + firmenwert[firma] + " €");
+            System.out.println("Alter Firmenwert: " + firmenwertAlt[merker] + " €");
+            if (firmenwert[firma] - firmenwertAlt[firma] > 10) {
+                System.out.println(ANSI_GREEN + "Veränderung: " + (firmenwert[firma] - firmenwertAlt[firma]) + " €" + ANSI_RESET);
+            } else if ((firmenwert[merker] - firmenwertAlt[merker] < -10)) {
+                System.out.println(ANSI_RED + "Veränderung: " + (firmenwert[firma] - firmenwertAlt[firma]) + " €" + ANSI_RESET);
+            } else {
+                System.out.println("Veränderung: " + (firmenwert[firma] - firmenwertAlt[firma]) + " €");
+            }
+            System.out.println("Möchtest du die Firma übernehmen? y/n");
+            belegen();
+            if (input.equals("y")) {
+                firmaÜbernehmen(firma);
+            } else {
+                System.out.println("Möchtest du die Firma wirklich auflösen? y/n");
+                belegen();
+                if (input.equals("y")) {
+                    System.out.println("Firma aufgelöst!");
+                    übertragungLäuft = false;
+                    firmaAufgelöst[firma] = false;
+                    firmensaldo[firma] = 0;
+                    gegründet[firma] = false;
+                    if (aktien[merker][firma] * aktieFirma[firma] > 0) { //Nutzer soll Aktienerlös nur bekommen, wenn dieser positiv ist
+                        saldo[merker] += aktien[merker][firma] * aktieFirma[firma];
+                    }
+                    aktien[merker][firma] = 0;
+                } else {
+                    firmaÜbernehmen(firma);
+                }
+            }
+        }
+    }
+
+    static void firmaÜbernehmen(int firma) {
+        firmenname[merker] = firmenname[firma];
+        firmenname[firma] = null;
+        firmensaldo[merker] = firmensaldo[firma];
+        firmensaldo[firma] = 0;
+        firmenwert[merker] = firmenwert[firma];
+        firmenwert[firma] = 0;
+        firmenwertAlt[merker] = firmenwertAlt[firma];
+        firmenwertAlt[firma] = 0;
+        firmenkosten[merker] = firmenkosten[firma];
+        firmenkosten[firma] = 0;
+        gegründet[firma] = false;
+        gegründet[merker] = true;
+        aktieFirma[merker] = aktieFirma[firma];
+        aktieFirma[firma] = 0;
+        aktieFirmaAlt[merker] = aktieFirmaAlt[firma];
+        aktieFirmaAlt[firma] = 0;
+
+        //Aktien der Nutzer auf neuen Eigentümer übertragen
+        for (int nutzer = 0; nutzer < maxNutzer; nutzer++) {
+            if (aktien[nutzer][firma] > 0) {
+                aktien[nutzer][merker] = aktien[nutzer][firma];
+                aktien[nutzer][firma] = 0;
+            }
+        }
+        System.out.println("Du bist nun der Inhaber der Firma " + firmenname[merker] + "!");
+        übertragungLäuft = false;
+        firmaAufgelöst[firma] = false;
+    }
+
     static void insolvenz() {
         System.out.println();
         System.out.println(ANSI_RED + firmenname[merker] + " steht vor der Insolvenz!" + ANSI_RESET);
@@ -985,7 +1129,7 @@ public class Account {
         aktie12alt = aktie12;
         aktie13alt = aktie13;
         int anzahlAkt = 3;
-        for(int i = 0; i<maxNutzer;i++) {
+        for (int i = 0; i < maxNutzer; i++) {
             if (gegründet[i]) {
                 aktieFirmaAlt[i] = aktieFirma[i];
                 anzahlAkt++;
@@ -1053,7 +1197,7 @@ public class Account {
                 aktie13 += operation;
                 break;
             default:
-                aktieFirma[aktie-3] += operation;
+                aktieFirma[aktie - 3] += operation;
                 break;
         }
     }
@@ -1070,7 +1214,7 @@ public class Account {
                 aktie13 -= operation;
                 break;
             default:
-                aktieFirma[aktie-3] -= operation;
+                aktieFirma[aktie - 3] -= operation;
                 break;
         }
     }
